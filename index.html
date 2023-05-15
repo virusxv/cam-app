@@ -1,13 +1,45 @@
-<html lang=”en”><head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">    <!-- Name of your awesome camera app -->
-    <title>Camera App</title>    <!-- Link to your main style sheet-->
-    <link rel="stylesheet" href="style.css">
-</head><body>    <!-- Camera -->
-    <main id="camera">        <!-- Camera sensor -->
-        <canvas id="camera--sensor"></canvas>        <!-- Camera view -->
-        <video id="camera--view" autoplay playsinline></video>        <!-- Camera output -->
-        <img src="//:0" alt="" id="camera--output">        <!-- Camera trigger -->
-        <button id="camera--trigger">Take a picture</button>    </main>    <!-- Reference to your JavaScript file -->
-    <script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Przykład robienia zdjęcia i przesyłania na serwer</title>
+</head>
+<body>
+  <h1>Przykład robienia zdjęcia i przesyłania na serwer</h1>
+  <form method="POST" action="upload.php" enctype="multipart/form-data">
+    <input type="file" accept="image/*" capture="camera" name="photo">
+    <input type="submit" value="Wyślij">
+  </form>
+
+  <script>
+    const form = document.querySelector('form');
+    const photoInput = form.querySelector('input[name="photo"]');
+
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+      const reader = new FileReader();
+
+      reader.addEventListener('load', () => {
+        const img = new Image();
+        img.src = reader.result;
+
+        img.addEventListener('load', () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+
+          const dataURL = canvas.toDataURL('image/jpeg', 0.5);
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', form.action);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          xhr.send(`photo=${encodeURIComponent(dataURL)}`);
+        });
+      });
+
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
